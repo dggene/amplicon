@@ -1,2 +1,2 @@
-# amplicon
-扩增子分析
+# DNA
+dna 分析流程

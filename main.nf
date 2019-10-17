@@ -4,54 +4,63 @@
 
 params.output='output'
 params.tmp='/tmp'
-params.database="/DG/database/genomes/Homo_sapiens/hg19"
-params.target="/DG/programs/beta/scripts/DNA/genetest/adult/dgadulttarget.bed"
-params.input="/DG/project0/DGgene/rawdata/20180621L3-SR16008/*_S74_L003_R{1,2}_001.fastq.gz"
+params.reads1="reads_R1.fastq.gz"
+params.reads2="reads_R2.fastq.gz"
+params.sample="123456789"
 
-Channel.fromFilePairs(params.input).into{samples0;samples1;samples2}
-samples2.println()
+
 log.info "DNA - NF ~ version 1.0"
 log.info "=============================="
-log.info "fastq path    :  ${params.input}"
-log.info "database home :  ${params.database}"
-log.info "target file   :  ${params.target}"
+log.info "fastq reads1          :  ${params.reads1}"
+log.info "fastq reads2          :  ${params.reads2}"
+log.info "sample name           :  ${params.sample}"          
+log.info "bwa_db_prefix         :  ${params.bwa_db_prefix}"
+log.info "ref_sequence          :  ${params.ref_sequence}"
+log.info "depth_target          :  ${params.depth_target}"
+log.info "gatk_default_target   :  ${params.gatk_default_target}"
+log.info "gatk_snp_target       :  ${params.gatk_snp_target}"
+log.info "gatk_indel_target     :  ${params.gatk_indel_target}"
+log.info "v1000G_phase1_indels_hg19_vcf   :  ${params.v1000G_phase1_indels_hg19_vcf}"
+log.info "Mills_and_1000G_gold_standard_indels_hg19_vcf   :  ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf}"
+log.info "dbsnp_137_hg19_vcf    :  ${params.dbsnp_137_hg19_vcf}"
 
 log.info "\n"
 
+reads1_file=file(params.reads1)
+reads2_file=file(params.reads2)
+
+if( !reads1_file.exists() ) {
+  exit 1, "The specified input file does not exist: ${params.reads1}"
+}
+
+if( !reads2_file.exists() ) {
+  exit 1, "The specified input file does not exist: ${params.reads2}"
+}
+
+
+
+sample=Channel.from(params.sample)
+reads1=Channel.fromPath(params.reads1)
+reads2=Channel.fromPath(params.reads2)
+
 process soapnuke{
     tag { sample_name }
-    container 'registry.cn-hangzhou.aliyuncs.com/bio/soapnuke'
     input:
-        set sample_name,files from samples0
-    
+        val sample_name from sample
+        file 'sample_R1.fq.gz' from reads1
+        file 'sample_R2.fq.gz' from reads2
+
     output:
         set sample_name,file("*.fastq.gz") into clean_samples
 
     script:
     """
-    SOAPnuke filter -1 ${files[0]} -2 ${files[1]} -l 15 -q 0.5 -Q 2 -G -o . \
+    SOAPnuke filter -1 sample_R1.fq.gz -2 sample_R2.fq.gz -l 15 -q 0.5 -Q 2 -o . \
         -C sample.clean1.fastq.gz -D sample.clean2.fastq.gz
     """
 }
 
-process fastqc{
-    tag { sample_name }
-    container 'biocontainers/fastqc:v0.11.5'
-    //conda "fastqc"
-    publishDir { "${params.output}/fastqc/"+ sample_name }
-    input:
-        set sample_name,files from samples1
-    output:
-        file "*_fastqc/Images/*.png"
-    script:
-        """
-        echo \$PWD
-        fastqc --extract -o . ${files[0]} ${files[1]}
-        """
-}
-
 process bwa{
-    container 'biocontainers/bwa:0.7.15'
     input:
         set sample_name,files from clean_samples
     
@@ -60,14 +69,13 @@ process bwa{
 
     script:
     """
-    bwa mem -t 10 -M -T 30 ${params.database}/bwa/chr1-x \
+    bwa mem -t 2 -M -T 30 ${params.bwa_db_prefix} \
         -R "@RG\tID:${sample_name}\tSM:${sample_name}\tPL:ILLUMINA\tLB:DG\tPU:illumina" \
         ${files[0]} ${files[1]} > sample.clean.sam
     """     
 }
 
 process sort{
-    container 'broadinstitute/genomes-in-the-cloud:2.3.1-1512499786'
     //picard=1.1150
     input:
         set sample_name,file('sample.clean.sam') from sam_res
@@ -77,7 +85,7 @@ process sort{
 
     script:
     """
-    java -Xmx2g -Djava.io.tmpdir=${params.tmp} -jar /usr/gitc/picard.jar  SortSam \
+    java -Xmx2g -Djava.io.tmpdir=${params.tmp} -jar ${params.picard_jar_path}  SortSam \
         INPUT=sample.clean.sam \
         OUTPUT=sample.clean.bam \
         MAX_RECORDS_IN_RAM=500000 \
@@ -90,24 +98,23 @@ process sort{
 bam_res.into{bam_res0;bam_res1;bam_res2;bam_res3}
 
 process align_stat{
-    container 'broadinstitute/genomes-in-the-cloud:2.3.1-1512499786'
     //picard=1.1150
     input:
         set sample_name,file('sample.clean.bam') from bam_res0
 
     script:
         """
-        java -Xmx2g -Djava.io.tmpdir=${params.tmp} -jar /usr/gitc/picard.jar CollectAlignmentSummaryMetrics \
+        java -Xmx2g -Djava.io.tmpdir=${params.tmp} -jar ${params.picard_jar_path} CollectAlignmentSummaryMetrics \
             INPUT=sample.clean.bam \
             OUTPUT=sample.mapped.stat \
             CREATE_INDEX=true \
             VALIDATION_STRINGENCY=LENIENT \
-            REFERENCE_SEQUENCE=${params.database}/bwa/chr1-x.fasta
+            REFERENCE_SEQUENCE=${params.ref_sequence}
         """
 }
 
 process depth{
-    container 'broadinstitute/genomes-in-the-cloud:2.3.1-1512499786'
+    label 'gatk'
     //gatk=3.6
     input:
         set sample_name,file('sample.clean.bam') from bam_res1
@@ -116,10 +123,10 @@ process depth{
 
     script:
         """
-        java -Xmx15g -jar /usr/gitc/GATK36.jar \
+        java -Xmx15g -jar ${params.gatk_jar_path} \
             -T DepthOfCoverage \
-            -R ${params.database}/bwa/chr1-x.fasta \
-            -L ${params.target} \
+            -R ${params.ref_sequence} \
+            -L ${params.depth_target} \
             -I sample.clean.bam \
             -ct 1 -ct 10 -ct 20 -ct 30 -ct 50 -ct 100 -ct 200 -ct 1000 \
             -o sample.target.basedepth
@@ -127,7 +134,7 @@ process depth{
 }
 
 process relign{
-    container 'broadinstitute/genomes-in-the-cloud:2.3.1-1512499786'
+    label 'gatk'
     //gatk=3.6
     input:
         set sample_name,file('sample.clean.bam') from bam_res2
@@ -135,19 +142,19 @@ process relign{
         file('sample.realigner.dedupped.clean.intervals') into target_intervals
     script:
         """
-        java -Xmx15g -jar /usr/gitc/GATK36.jar \
+        java -Xmx15g -jar ${params.gatk_jar_path} \
             -T RealignerTargetCreator \
-            -R ${params.database}/bwa/chr1-x.fasta \
-            -L /DG/project0/DGgene/adult/20180621/dgadult.bed \
+            -R ${params.ref_sequence} \
+            -L ${params.gatk_default_target} \
             -o sample.realigner.dedupped.clean.intervals \
             -I sample.clean.bam \
-            -known ${params.database}/GATK/1000G_phase1.indels.hg19.vcf \
-            -known ${params.database}/GATK/Mills_and_1000G_gold_standard.indels.hg19.vcf
+            -known ${params.v1000G_phase1_indels_hg19_vcf} \
+            -known ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf}
         """
 }
 
 process IndelRealigner{
-    container 'broadinstitute/genomes-in-the-cloud:2.3.1-1512499786'
+    label 'gatk'
     //gatk=3.6
     input:
         set sample_name,file('sample.clean.bam') from bam_res3
@@ -157,16 +164,16 @@ process IndelRealigner{
         set sample_name,file('sample.realigned.clean.bam') into realigned_bam_res
     script:
         """
-        java -Xmx15g -jar /usr/gitc/GATK36.jar \
+        java -Xmx15g -jar ${params.gatk_jar_path} \
             -T IndelRealigner \
             -filterNoBases \
-            -R ${params.database}/bwa/chr1-x.fasta \
-            -L /DG/project0/DGgene/adult/20180621/dgadult.bed \
+            -R ${params.ref_sequence} \
+            -L ${params.gatk_default_target} \
             -I sample.clean.bam \
             -targetIntervals sample.realigner.dedupped.clean.intervals \
             -o sample.realigned.clean.bam \
-            -known ${params.database}/GATK/1000G_phase1.indels.hg19.vcf \
-            -known ${params.database}/GATK/Mills_and_1000G_gold_standard.indels.hg19.vcf
+            -known ${params.v1000G_phase1_indels_hg19_vcf} \
+            -known ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf}
         """
 }
 
@@ -174,7 +181,7 @@ process IndelRealigner{
 realigned_bam_res.into{realigned_bam_res0;realigned_bam_res1}
 
 process BQSR{
-    container 'broadinstitute/genomes-in-the-cloud:2.3.1-1512499786'
+    label 'gatk'
     //gatk=3.6
     input:
         set sample_name,file('sample.realigned.clean.bam') from realigned_bam_res0
@@ -184,20 +191,20 @@ process BQSR{
 
     script:
         """
-        java -Xmx15g -jar /usr/gitc/GATK36.jar \
+        java -Xmx15g -jar ${params.gatk_jar_path} \
             -T BaseRecalibrator \
-            -R ${params.database}/bwa/chr1-x.fasta \
-            -L /DG/project0/DGgene/adult/20180621/dgadult.bed \
+            -R ${params.ref_sequence} \
+            -L ${params.gatk_default_target} \
             -I sample.realigned.clean.bam \
-            -knownSites ${params.database}/GATK/dbsnp_137.hg19.vcf \
-            -knownSites ${params.database}/GATK/Mills_and_1000G_gold_standard.indels.hg19.vcf \
-            -knownSites ${params.database}/GATK/1000G_phase1.indels.hg19.vcf \
+            -knownSites ${params.dbsnp_137_hg19_vcf} \
+            -knownSites ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf} \
+            -knownSites ${params.v1000G_phase1_indels_hg19_vcf} \
             -o sample.recal.table
         """
 }
 
 process print_reads{
-    container 'broadinstitute/genomes-in-the-cloud:2.3.1-1512499786'
+    label 'gatk'
     //gatk=3.6
     input:
         set sample_name,file('sample.realigned.clean.bam') from realigned_bam_res1
@@ -206,10 +213,10 @@ process print_reads{
         set sample_name,file('sample.recal.final.clean.bam') into recal_bam_res
     script:
         """
-        java -Xmx15g -jar /usr/gitc/GATK36.jar \
+        java -Xmx15g -jar ${params.gatk_jar_path} \
             -T PrintReads \
-            -R ${params.database}/bwa/chr1-x.fasta \
-            -L /DG/project0/DGgene/adult/20180621/dgadult.bed \
+            -R ${params.ref_sequence} \
+            -L ${params.gatk_default_target} \
             -I sample.realigned.clean.bam \
             -BQSR sample.recal.table \
             -o sample.recal.final.clean.bam
@@ -219,8 +226,7 @@ process print_reads{
 recal_bam_res.into{recal_bam_res0;recal_bam_res1}
 
 process UnifiedGenotyper_snp{
-
-    container 'broadinstitute/genomes-in-the-cloud:2.3.1-1512499786'
+    label 'gatk'
     //gatk=3.6
     publishDir { "${params.output}/snp/"}
     input:
@@ -229,16 +235,16 @@ process UnifiedGenotyper_snp{
         set sample_name,file('*.snp.vcf') into snp_vcf_res
     script:
         """
-        java -Xmx15g -jar /usr/gitc/GATK36.jar \
+        java -Xmx15g -jar ${params.gatk_jar_path} \
             -T UnifiedGenotyper \
-            -R ${params.database}/bwa/chr1-x.fasta \
+            -R ${params.ref_sequence} \
             -I sample.recal.final.clean.bam \
             -glm SNP \
-            -D ${params.database}/GATK/dbsnp_137.hg19.vcf \
+            -D ${params.dbsnp_137_hg19_vcf} \
             -o ${sample_name}.snp.vcf \
             -stand_call_conf 30 \
             -baqGOP 30 \
-            -L /DG/programs/beta/scripts/DNA/genetest/adult/dgadultsnp.bed \
+            -L ${params.gatk_snp_target} \
             -nct 12 \
             -dcov  10000 \
             -U ALLOW_SEQ_DICT_INCOMPATIBILITY -A VariantType -A QualByDepth \
@@ -251,7 +257,7 @@ process UnifiedGenotyper_snp{
 }
 
 process UnifiedGenotyper_indel{
-    container 'broadinstitute/genomes-in-the-cloud:2.3.1-1512499786'
+    label 'gatk'
     //gatk=3.6
     publishDir { "${params.output}/indel/"}
     input:
@@ -260,16 +266,16 @@ process UnifiedGenotyper_indel{
         set sample_name,file('*.indel.vcf') into indel_vcf_res
     script:
         """
-        java -Xmx15g -jar /usr/gitc/GATK36.jar \
+        java -Xmx15g -jar ${params.gatk_jar_path} \
             -T UnifiedGenotyper \
-            -R ${params.database}/bwa/chr1-x.fasta \
+            -R ${params.ref_sequence} \
             -I sample.recal.final.clean.bam \
             -glm INDEL \
-            -D ${params.database}/GATK/dbsnp_137.hg19.vcf \
+            -D ${params.dbsnp_137_hg19_vcf} \
             -o ${sample_name}.indel.vcf \
             -stand_call_conf 30 \
             -baqGOP 30 \
-            -L /DG/programs/beta/scripts/DNA/genetest/adult/dgadultindel.bed \
+            -L ${params.gatk_indel_target} \
             -nct 12 \
             -U ALLOW_SEQ_DICT_INCOMPATIBILITY -A VariantType -A QualByDepth \
             -A HaplotypeScore -A BaseQualityRankSumTest \
@@ -280,12 +286,11 @@ process UnifiedGenotyper_indel{
 }
 
 process genotype{
-    container 'registry.cn-hangzhou.aliyuncs.com/bio/script-tool'
     publishDir {"${params.output}/genotype/"}
 
     input:
         set sample_name,file('snp.vcf') from snp_vcf_res
-        set sample_name_1,file('index.vcf') from indel_vcf_res
+        set sample_name_1,file('indel.vcf') from indel_vcf_res
         file('sample.target.basedepth.sample_interval_summary') from depth_res
 
     output:
@@ -293,7 +298,7 @@ process genotype{
 
     script:
         """
-        Rscript $baseDir/bin/dgadultgenotype.R --args -o snp.vcf,index.vcf,sample.target.basedepth.sample_interval_summary,./${sample_name}
+        Rscript $baseDir/bin/dgadultgenotype.R --args -o snp.vcf,indel.vcf,sample.target.basedepth.sample_interval_summary,./${sample_name},${params.gatk_snp_target},${params.genotype_bed}
         """
 }
 
@@ -325,6 +330,7 @@ ErrorMessage    :   -
 Error report    :   -
 """
     log.info(msg)
+
     sendMail(
         to: 'panyunlai@126.com',
         subject: 'dna workflow run complete！',

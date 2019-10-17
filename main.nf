@@ -245,7 +245,7 @@ process UnifiedGenotyper_snp{
             -stand_call_conf 30 \
             -baqGOP 30 \
             -L ${params.gatk_snp_target} \
-            -nct 12 \
+            -nct 2 \
             -dcov  10000 \
             -U ALLOW_SEQ_DICT_INCOMPATIBILITY -A VariantType -A QualByDepth \
             -A HaplotypeScore -A BaseQualityRankSumTest \
@@ -276,7 +276,7 @@ process UnifiedGenotyper_indel{
             -stand_call_conf 30 \
             -baqGOP 30 \
             -L ${params.gatk_indel_target} \
-            -nct 12 \
+            -nct 2 \
             -U ALLOW_SEQ_DICT_INCOMPATIBILITY -A VariantType -A QualByDepth \
             -A HaplotypeScore -A BaseQualityRankSumTest \
             -A MappingQualityRankSumTest -A ReadPosRankSumTest \

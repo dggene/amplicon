@@ -302,6 +302,8 @@ process genotype{
         """
 }
 
+
+
 workflow.onComplete {
     def msg="""
 Pipeline execution summary

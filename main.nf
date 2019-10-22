@@ -26,7 +26,7 @@ params.gatk_cpu=2
 
 params.help=null
 
-version="v1.0.4"
+version="v1.0.5"
 
 log.info ""
 log.info "------------------------------------------"

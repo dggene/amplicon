@@ -4,27 +4,79 @@
 
 params.output='output'
 params.tmp='/tmp'
-params.reads1="reads_R1.fastq.gz"
-params.reads2="reads_R2.fastq.gz"
-params.sample="123456789"
+params.reads1=null
+params.reads2=null
+params.sample=null
+
+params.bwa_db_prefix=null
+params.picard_jar_path=null
+params.gatk_jar_path=null
+params.ref_sequence=null
+params.depth_target=null
+params.gatk_default_target=null
+params.gatk_snp_target=null
+params.gatk_indel_target=null
+params.v1000G_phase1_indels_hg19_vcf=null
+params.Mills_and_1000G_gold_standard_indels_hg19_vcf=null
+params.dbsnp_137_hg19_vcf=null
+params.genotype_bed=null
 
 
-log.info "DNA - NF ~ version 1.0"
-log.info "=============================="
-log.info "fastq reads1          :  ${params.reads1}"
-log.info "fastq reads2          :  ${params.reads2}"
-log.info "sample name           :  ${params.sample}"          
-log.info "bwa_db_prefix         :  ${params.bwa_db_prefix}"
-log.info "ref_sequence          :  ${params.ref_sequence}"
-log.info "depth_target          :  ${params.depth_target}"
-log.info "gatk_default_target   :  ${params.gatk_default_target}"
-log.info "gatk_snp_target       :  ${params.gatk_snp_target}"
-log.info "gatk_indel_target     :  ${params.gatk_indel_target}"
-log.info "v1000G_phase1_indels_hg19_vcf   :  ${params.v1000G_phase1_indels_hg19_vcf}"
-log.info "Mills_and_1000G_gold_standard_indels_hg19_vcf   :  ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf}"
-log.info "dbsnp_137_hg19_vcf    :  ${params.dbsnp_137_hg19_vcf}"
+params.help=null
 
+version="v1.0.4"
+
+log.info ""
+log.info "------------------------------------------"
+log.info "        DNA pipeline "
+log.info "        version  ${version}"
+log.info "run 'nextflow run main.nf --help' for get help "
+log.info "------------------------------------------"
+log.info ""
+
+if(params.help){
+    log.info "----------------------------------------------------------------"
+    log.info "                      USAGE                                     "
+    log.info "----------------------------------------------------------------"
+    log.info ""
+    log.info "nextflow main.nf --reads1=sample.R1.fq.gz --reads2=sample.R2.fq.gz --sample=sample_name --output=output_dir"
+    log.info "Mandatory arguments:"
+    log.info "--reads1                 String                reads1"
+    log.info "--reads2                 String                reads2"
+    log.info "--sample                 String                sample name"
+    log.info "--output                 String                output dir"
+    log.info "----------------------------------------------------------------"
+    log.info "----------------------------------------------------------------"
+   	log.info "Optional arguments (General):"
+   	log.info "--tmp                    String                Name of folder that will contain the tmp file"
+    log.info ""
+    log.info "--------------------------------------------------------"
+    exit 0
+}else{
+    log.info "fastq reads1          :  ${params.reads1}"
+    log.info "fastq reads2          :  ${params.reads2}"
+    log.info "sample name           :  ${params.sample}"          
+    log.info "bwa_db_prefix         :  ${params.bwa_db_prefix}"
+    log.info "ref_sequence          :  ${params.ref_sequence}"
+    log.info "depth_target          :  ${params.depth_target}"
+    log.info "gatk_default_target   :  ${params.gatk_default_target}"
+    log.info "gatk_snp_target       :  ${params.gatk_snp_target}"
+    log.info "gatk_indel_target     :  ${params.gatk_indel_target}"
+    log.info "v1000G_phase1_indels_hg19_vcf   :  ${params.v1000G_phase1_indels_hg19_vcf}"
+    log.info "Mills_and_1000G_gold_standard_indels_hg19_vcf   :  ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf}"
+    log.info "dbsnp_137_hg19_vcf    :  ${params.dbsnp_137_hg19_vcf}"
+}
 log.info "\n"
+
+if(!params.reads1){
+    exit 1,"Need params reads1"
+}
+if(!params.reads2){
+    exit 1,"Need params reads2"
+}
+if(!params.sample){
+    exit 1,"Need params sample"
+}
 
 reads1_file=file(params.reads1)
 reads2_file=file(params.reads2)
@@ -36,8 +88,6 @@ if( !reads1_file.exists() ) {
 if( !reads2_file.exists() ) {
   exit 1, "The specified input file does not exist: ${params.reads2}"
 }
-
-
 
 sample=Channel.from(params.sample)
 reads1=Channel.fromPath(params.reads1)

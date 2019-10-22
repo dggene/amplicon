@@ -20,6 +20,8 @@ params.v1000G_phase1_indels_hg19_vcf=null
 params.Mills_and_1000G_gold_standard_indels_hg19_vcf=null
 params.dbsnp_137_hg19_vcf=null
 params.genotype_bed=null
+params.bwa_cpu=2
+params.gatk_cpu=2
 
 
 params.help=null
@@ -119,7 +121,7 @@ process bwa{
 
     script:
     """
-    bwa mem -t 2 -M -T 30 ${params.bwa_db_prefix} \
+    bwa mem -t ${params.bwa_cpu} -M -T 30 ${params.bwa_db_prefix} \
         -R "@RG\tID:${sample_name}\tSM:${sample_name}\tPL:ILLUMINA\tLB:DG\tPU:illumina" \
         ${files[0]} ${files[1]} > sample.clean.sam
     """     
@@ -249,6 +251,7 @@ process BQSR{
             -knownSites ${params.dbsnp_137_hg19_vcf} \
             -knownSites ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf} \
             -knownSites ${params.v1000G_phase1_indels_hg19_vcf} \
+            -nct ${params.gatk_cpu} \
             -o sample.recal.table
         """
 }
@@ -295,7 +298,7 @@ process UnifiedGenotyper_snp{
             -stand_call_conf 30 \
             -baqGOP 30 \
             -L ${params.gatk_snp_target} \
-            -nct 2 \
+            -nct ${params.gatk_cpu} \
             -dcov  10000 \
             -U ALLOW_SEQ_DICT_INCOMPATIBILITY -A VariantType -A QualByDepth \
             -A HaplotypeScore -A BaseQualityRankSumTest \
@@ -326,7 +329,7 @@ process UnifiedGenotyper_indel{
             -stand_call_conf 30 \
             -baqGOP 30 \
             -L ${params.gatk_indel_target} \
-            -nct 2 \
+            -nct ${params.gatk_cpu} \
             -U ALLOW_SEQ_DICT_INCOMPATIBILITY -A VariantType -A QualByDepth \
             -A HaplotypeScore -A BaseQualityRankSumTest \
             -A MappingQualityRankSumTest -A ReadPosRankSumTest \

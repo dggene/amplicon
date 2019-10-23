@@ -26,7 +26,7 @@ params.gatk_cpu=2
 
 params.help=null
 
-version="v1.0.5"
+version="v1.0.6"
 
 log.info ""
 log.info "------------------------------------------"
@@ -385,11 +385,4 @@ ErrorMessage    :   -
 Error report    :   -
 """
     log.info(msg)
-
-    sendMail(
-        to: 'panyunlai@126.com',
-        subject: 'dna workflow run complete！',
-        body:msg,
-        attach:"${workflow.launchDir}/report.html"
-    )
 }

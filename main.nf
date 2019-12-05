@@ -351,7 +351,14 @@ process genotype{
 
     script:
         """
-        Rscript /opt/dgadultgenotype.R --args -o snp.vcf,indel.vcf,sample.target.basedepth.sample_interval_summary,./${sample_name},${params.gatk_snp_target},${params.genotype_bed}
+        Rscript /opt/dghypgenotype-v5.R --args \
+        -o snp.vcf \
+        indel.vcf \
+        sample.target.basedepth.sample_interval_summary \
+        ./${sample_name} \
+        ${params.snpbed} \
+        ${params.indelbed} \
+        ${params.specialbed}
         """
 }
 

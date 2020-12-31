@@ -339,7 +339,7 @@ process UnifiedGenotyper_indel{
 }
 
 process genotype{
-    publishDir {"${params.output}/genotype/", mode: 'copy'}
+    publishDir {"${params.output}", mode: 'copy'}
 
     input:
         set sample_name,file('snp.vcf') from snp_vcf_res

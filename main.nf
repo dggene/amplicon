@@ -281,7 +281,7 @@ recal_bam_res.into{recal_bam_res0;recal_bam_res1}
 process UnifiedGenotyper_snp{
     label 'gatk'
     //gatk=3.6
-    publishDir { "${params.output}/snp/"}
+    publishDir { "${params.output}/snp/", mode: 'copy'}
     input:
         set sample_name,file('sample.recal.final.clean.bam') from recal_bam_res0
     output:
@@ -312,7 +312,7 @@ process UnifiedGenotyper_snp{
 process UnifiedGenotyper_indel{
     label 'gatk'
     //gatk=3.6
-    publishDir { "${params.output}/indel/"}
+    publishDir { "${params.output}/indel/", mode: 'copy'}
     input:
         set sample_name,file('sample.recal.final.clean.bam') from recal_bam_res1
     output:
@@ -339,7 +339,7 @@ process UnifiedGenotyper_indel{
 }
 
 process genotype{
-    publishDir {"${params.output}/genotype/"}
+    publishDir {"${params.output}/genotype/", mode: 'copy'}
 
     input:
         set sample_name,file('snp.vcf') from snp_vcf_res

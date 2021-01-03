@@ -197,7 +197,6 @@ process relign{
         java -Xmx15g -jar ${params.gatk_jar_path} \
             -T RealignerTargetCreator \
             -R ${params.ref_sequence} \
-            -L ${params.gatk_default_target} \
             -o sample.realigner.dedupped.clean.intervals \
             -I sample.clean.bam \
             -known ${params.v1000G_phase1_indels_hg19_vcf} \
@@ -220,7 +219,6 @@ process IndelRealigner{
             -T IndelRealigner \
             -filterNoBases \
             -R ${params.ref_sequence} \
-            -L ${params.gatk_default_target} \
             -I sample.clean.bam \
             -targetIntervals sample.realigner.dedupped.clean.intervals \
             -o sample.realigned.clean.bam \
@@ -246,7 +244,6 @@ process BQSR{
         java -Xmx15g -jar ${params.gatk_jar_path} \
             -T BaseRecalibrator \
             -R ${params.ref_sequence} \
-            -L ${params.gatk_default_target} \
             -I sample.realigned.clean.bam \
             -knownSites ${params.dbsnp_137_hg19_vcf} \
             -knownSites ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf} \
@@ -269,7 +266,6 @@ process print_reads{
         java -Xmx15g -jar ${params.gatk_jar_path} \
             -T PrintReads \
             -R ${params.ref_sequence} \
-            -L ${params.gatk_default_target} \
             -I sample.realigned.clean.bam \
             -BQSR sample.recal.table \
             -o sample.recal.final.clean.bam
@@ -351,14 +347,13 @@ process genotype{
 
     script:
         """
-        Rscript /opt/dghypgenotype-v5.R --args \
-        -o snp.vcf \
+        Rscript /opt/dgsnpgenotype.R --args \
+        snp.vcf \
         indel.vcf \
         sample.target.basedepth.sample_interval_summary \
         ./${sample_name} \
         ${params.snpbed} \
-        ${params.indelbed} \
-        ${params.specialbed}
+        ${params.indelbed}
         """
 }
 

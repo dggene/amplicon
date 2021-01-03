@@ -347,7 +347,7 @@ process genotype{
 
     script:
         """
-        Rscript /opt/dgsnpgenotype.R --args \
+        Rscript ${workflow.projectDir}/scripts/dgsnpgenotype.R --args \
         snp.vcf \
         indel.vcf \
         sample.target.basedepth.sample_interval_summary \

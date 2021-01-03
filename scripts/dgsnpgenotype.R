@@ -5,13 +5,15 @@ input =split.vars[1]
 inputindel=split.vars[2]
 inputgst=split.vars[3]
 out=split.vars[4]
+snpbed=split.vars[5]
+indelregion=split.vars[6]
 
 library(VariantAnnotation)
 #snp annotation
 #vcf <- readVcf('d:/Sample10.snp.vcf', "hg19")
 
 vcf <- readVcf(input, "hg19")
-snp <- read.table('/DG/project/zhum/DGgene/bed/dgsnp.bed',head=FALSE)[,-2]#�滻allsnp.bed
+snp <- read.table(snpbed,head=FALSE)[,-2]#�滻allsnp.bed
 colnames(snp)=c('chr','end','RS')
 #save.image('test.Rdata')
 
@@ -62,7 +64,7 @@ snpall=rbind(snpgeno,missgeno)
 #vcfindel <- readVcf('d:/Sample10.indel.vcf', "hg19")
 vcfindel <- readVcf(inputindel, "hg19")
 
-indel <- read.delim('/DG/project/zhum/DGgene/bed/dgindelinfo.txt',head=F)#allinde.txt
+indel <- read.delim(indelregion,head=F)#allinde.txt
 vcfindelhead=as.data.frame(rowRanges(vcfindel))[,c(1:3,7)]
 genoindel <- geno(vcfindel)$GT
 refindel <- ref(vcfindel)

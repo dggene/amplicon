@@ -1,5 +1,5 @@
 vars.tmp <- commandArgs(T)
-split.vars  <- vars.tmp[-(1:2)]
+split.vars  <- vars.tmp[-(1)]
 input =split.vars[1]
 inputindel=split.vars[2]
 region=split.vars[3]

@@ -1,4 +1,4 @@
-1.dgtarget.bed ÊÇgatk depthofcoverage Ìæ»»ÎÄ¼ş
-2.allsnp.bed ÊÇsnp call Ìæ»»ÎÄ¼ş
-3.allindel.bed ÊÇindel call Ìæ»»ÎÄ¼ş
-4.dgsnpgenotype.r ĞèÒª´ò¿ªÎÄ¼şÌæ»»ÆäÖĞsnpºÍindelÎÄ¼ş£¬ÏêÏ¸¿´ÎÄ¼şÀïµÄ×¢½â
+1.dgtarget.bed ï¿½ï¿½gatk depthofcoverage ï¿½æ»»ï¿½Ä¼ï¿½
+2.allsnp.bed ï¿½ï¿½snp call ï¿½æ»»ï¿½Ä¼ï¿½
+3.allindel.bed ï¿½ï¿½indel call ï¿½æ»»ï¿½Ä¼ï¿½
+4.dgsnpgenotype.r ï¿½ï¿½Òªï¿½ï¿½ï¿½Ä¼ï¿½ï¿½æ»»ï¿½ï¿½ï¿½ï¿½snpï¿½ï¿½indelï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½

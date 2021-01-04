@@ -235,8 +235,8 @@ process genotype{
     publishDir "${params.output}", mode: 'copy'
 
     input:
-        set sample_name,file('snp.vcf') from snp_vcf_res
-        set sample_name_1,file('indel.vcf') from indel_vcf_res
+        set sample_name,file(snp_vcf) from snp_vcf_res
+        set sample_name_1,file(indel_vcf) from indel_vcf_res
         file('sample.target.basedepth.sample_interval_summary') from depth_res
 
     output:
@@ -245,8 +245,8 @@ process genotype{
     script:
         """
         Rscript ${workflow.projectDir}/scripts/dgsnpgenotype.R --args \
-        snp.vcf \
-        indel.vcf \
+        $snp_vcf \
+        $indel_vcf \
         sample.target.basedepth.sample_interval_summary \
         ./${sample_name} \
         ${params.snpbed} \

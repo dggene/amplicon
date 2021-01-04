@@ -12,5 +12,5 @@ work_dir=$7
 mkdir -p $work_dir
 cd $work_dir
 set -x
-nextflow run /code/main.nf -profile indocker --sample=$sample --reads1=$reads1 --reads2=$reads2 --bwa_cpu=$bwa_cpu --gatk_cpu=$gatk_cpu --output $output
+nextflow run /code/main-v2.nf -profile indocker --sample=$sample --reads1=$reads1 --reads2=$reads2 --bwa_cpu=$bwa_cpu --gatk_cpu=$gatk_cpu --output $output
 

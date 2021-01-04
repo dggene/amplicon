@@ -197,7 +197,8 @@ process relign{
         java -Xmx15g -jar ${params.gatk_jar_path} \
             -T RealignerTargetCreator \
             -R ${params.ref_sequence} \
-            -o sample.realigner.dedupped.clean.intervals \
+	    -L ${params.depth_target} \
+	    -o sample.realigner.dedupped.clean.intervals \	
             -I sample.clean.bam \
             -known ${params.v1000G_phase1_indels_hg19_vcf} \
             -known ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf}
@@ -222,6 +223,7 @@ process IndelRealigner{
             -I sample.clean.bam \
             -targetIntervals sample.realigner.dedupped.clean.intervals \
             -o sample.realigned.clean.bam \
+            -L ${params.depth_target} \
             -known ${params.v1000G_phase1_indels_hg19_vcf} \
             -known ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf}
         """
@@ -248,6 +250,7 @@ process BQSR{
             -knownSites ${params.dbsnp_137_hg19_vcf} \
             -knownSites ${params.Mills_and_1000G_gold_standard_indels_hg19_vcf} \
             -knownSites ${params.v1000G_phase1_indels_hg19_vcf} \
+            -L ${params.depth_target} \
             -nct ${params.gatk_cpu} \
             -o sample.recal.table
         """
@@ -268,6 +271,7 @@ process print_reads{
             -R ${params.ref_sequence} \
             -I sample.realigned.clean.bam \
             -BQSR sample.recal.table \
+            -L ${params.depth_target} \
             -o sample.recal.final.clean.bam
         """
 }

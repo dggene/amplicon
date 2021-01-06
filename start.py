@@ -7,4 +7,5 @@ def parse_arg():
     parser.add_argument('--reads1',type=str,help='reads1 path')
     parser.add_argument('--reads2',type=str,help='reads2 path')
     args = parser.parse_args()
+    
     print(args.a)

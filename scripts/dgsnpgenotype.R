@@ -155,7 +155,7 @@ rs429358=snpall['rs429358',2]
 apoe.rs='rs7412/rs429358'
 apoe.geno=paste(rs7412,rs429358,sep='/')
 
-apoe.df=snpall['rs7412',2]
+apoe.df=snpall['rs7412',]
 apoe.df[1,1]=apoe.rs
 apoe.df[1,2]=apoe.geno
 

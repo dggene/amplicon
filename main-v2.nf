@@ -233,7 +233,8 @@ process UnifiedGenotyper_indel{
 
 process genotype{
     publishDir "${params.output}", mode: 'copy'
-
+    stageInMode "copy"
+    
     input:
         set sample_name,file(snp_vcf) from snp_vcf_res
         set sample_name_1,file(indel_vcf) from indel_vcf_res

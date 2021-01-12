@@ -146,7 +146,21 @@ for(i in 1:nrow(allgeno)){
   }
 
 snpall=rbind(allgeno,missgeno)
+snpall <- snpall[,c(8,7,6,1:5)]
+
+#apoe
+rownames(snpall)<-snpall[,1]
+rs7412=snpall['rs7412',2]
+rs429358=snpall['rs429358',2]
+apoe.rs='rs7412/rs429358'
+apoe.geno=paste(rs7412,rs429358,sep='/')
+
+apoe.df=snpall['rs7412',2]
+apoe.df[1,1]=apoe.rs
+apoe.df[1,2]=apoe.geno
+
+snpall<-rbind(snpall,apoe.df)
 
 #if(snpall[grep('rs676210',snpall[,8]),7]=='GA') snpall[grep('rs676210',snpall[,8]),7]='AG'
-
-write.table(snpall[,c(8,7,6,1:5)],paste(out,'.geno',sep=''),quote=F,row.names=F,sep='\t')
+#write.table(snpall[,c(8,7,6,1:5)],paste(out,'.geno',sep=''),quote=F,row.names=F,sep='\t')
+write.table(snpall,paste(out,'.geno',sep=''),quote=F,row.names=F,sep='\t')

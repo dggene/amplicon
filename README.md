@@ -1,6 +1,7 @@
 # DNA
 dna 分析流程
 
+
 # 使用方法
     nextflow run main.nf -profile {x86|arm} --reads1=sample_R1.fq.gz  --reads2=sample.R2.fq.gz --sample={SAMPLE_NAME} --output={OUTPUT DIR} 
     参数：

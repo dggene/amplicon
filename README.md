@@ -1,3 +1,4 @@
+[![Gitter](https://badges.gitter.im/pandora0414/community.svg)](https://gitter.im/pandora0414/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 # DNA
 dna 分析流程
 

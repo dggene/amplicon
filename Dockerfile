@@ -49,7 +49,12 @@ RUN wget https://github.com/BGI-flexlab/SOAPnuke/archive/SOAPnuke${SOAPNUKE_VERS
 
 RUN mkdir -p /usr/picard /usr/gatk
 RUN wget https://gcs.obs.cn-north-4.myhuaweicloud.com/tools/picard.jar  -O /usr/picard/picard.jar
-RUN wget https://gcs.obs.cn-north-4.myhuaweicloud.com/tools/gatk.jar -O /usr/gatk/gatk.jar
+
+ENV GATK_VERSION 3.7-0-gcfedb67
+RUN wget https://gcs.obs.cn-north-4.myhuaweicloud.com/tools/GenomeAnalysisTK-${GATK_VERSION}.tar.bz2 -O /tmp/GenomeAnalysisTK-${GATK_VERSION}.tar.bz2 && \
+    tar -C /tmp -xjf /tmp/GenomeAnalysisTK-${GATK_VERSION}.tar.bz2 && \
+    cp -rf /tmp/GenomeAnalysisTK-${GATK_VERSION}/GenomeAnalysisTK.jar /usr/gatk/gatk.jar && \
+    rm -rf /tmp/GenomeAnalysisTK-${GATK_VERSION}.tar.bz2 /tmp/GenomeAnalysisTK-${GATK_VERSION}
 
 ADD docker/package.r /tmp/package.r
 RUN Rscript /tmp/package.r

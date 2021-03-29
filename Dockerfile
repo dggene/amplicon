@@ -53,8 +53,8 @@ RUN wget https://gcs.obs.cn-north-4.myhuaweicloud.com/tools/picard.jar  -O /usr/
 ENV GATK_VERSION 3.7-0-gcfedb67
 RUN wget https://gcs.obs.cn-north-4.myhuaweicloud.com/tools/GenomeAnalysisTK-${GATK_VERSION}.tar.bz2 -O /tmp/GenomeAnalysisTK-${GATK_VERSION}.tar.bz2 && \
     tar -C /tmp -xjf /tmp/GenomeAnalysisTK-${GATK_VERSION}.tar.bz2 && \
-    cp -rf /tmp/GenomeAnalysisTK-${GATK_VERSION}/GenomeAnalysisTK.jar /usr/gatk/gatk.jar && \
-    rm -rf /tmp/GenomeAnalysisTK-${GATK_VERSION}.tar.bz2 /tmp/GenomeAnalysisTK-${GATK_VERSION}
+    cp -rf /tmp/GenomeAnalysisTK.jar /usr/gatk/gatk.jar && \
+    rm -rf /tmp/GenomeAnalysisTK-${GATK_VERSION}.tar.bz2
 
 ADD docker/package.r /tmp/package.r
 RUN Rscript /tmp/package.r
